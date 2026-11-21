@@ -171,8 +171,13 @@ cb = colorbar; cb.Layout.Tile='east'; cb.Label.String = 'normalised mode vortici
 exportgraphics(f,[fig 'F11_pod_modes.png'],'Resolution',140); close(f);
 
 %% F12: phase-averaged vorticity (12 phases)
-f = figure('Position',[0 0 1800 1060]); tiledlayout(3,4,'TileSpacing','tight','Padding','compact');
-for b=1:A.nbin
+% The sign of the POD phase is arbitrary. Tracked vortex cores move UPSTREAM as
+% phi increases (s9: about -0.10 D per 30-deg bin), so physical time runs with
+% DECREASING phi. Tiles and GIF frames are therefore ordered from large to small phi.
+ordT = A.nbin:-1:1;
+f = figure('Position',[0 0 1800 1060]); tl = tiledlayout(3,4,'TileSpacing','tight','Padding','compact');
+title(tl,'Time runs left to right, top to bottom (\phi decreasing; the sign of the POD phase is arbitrary)','FontSize',11);
+for b=ordT
   w = fl(A.Wph(:,:,b))*D/U0; up=fl(A.Uph(:,:,b))/U0; vp=fl(A.Vph(:,:,b))/U0;
   nexttile; set(gca,'Color',nodata); hold on; pcolor(X,Y,w); shading interp; colormap(gca,div); caxis([-8 8]);
   s=3; quiver(X(1:s:end,1:s:end),Y(1:s:end,1:s:end),up(1:s:end,1:s:end)-1*0,vp(1:s:end,1:s:end),1.2,'Color',[ink 0.65],'LineWidth',0.45);
@@ -186,13 +191,13 @@ exportgraphics(f,[fig 'F12_phase_averaged_vorticity.png'],'Resolution',130); clo
 gif = [fig 'F12b_phase_animation.gif'];
 f = figure('Position',[0 0 900 640],'Color','w');
 for rep=1:1
-for b=1:A.nbin
+for b=ordT
   clf; w = fl(A.Wph(:,:,b))*D/U0; up=fl(A.Uph(:,:,b))/U0; vp=fl(A.Vph(:,:,b))/U0;
   ax=axes; set(ax,'Color',nodata); hold on; pcolor(X,Y,w); shading interp; colormap(div); caxis([-8 8]); cb=colorbar; cb.Label.String='\omega_z D/U_0';
   up2=up; vp2=vp; up2(isnan(up2))=0; vp2(isnan(vp2))=0; hs=streamslice(X,Y,up2-0,vp2,1.6); set(hs,'Color',[ink 0.6],'LineWidth',0.6);
-  cyl(); axis image; xlim(xl); ylim(yl); xlabel('x/D'); ylabel('y/D'); title(sprintf('Phase-averaged vorticity, \\phi = %d°', round(-180+(b-0.5)*360/A.nbin)));
+  cyl(); axis image; xlim(xl); ylim(yl); xlabel('x/D'); ylabel('y/D'); title(sprintf('Phase-averaged vorticity, \\phi = %d°  (time: \\phi decreasing)', round(-180+(b-0.5)*360/A.nbin)));
   drawnow; fr = getframe(f); [im,map] = rgb2ind(fr.cdata,256,'nodither');
-  if b==1, imwrite(im,map,gif,'gif','LoopCount',inf,'DelayTime',0.25); else, imwrite(im,map,gif,'gif','WriteMode','append','DelayTime',0.25); end
+  if b==ordT(1), imwrite(im,map,gif,'gif','LoopCount',inf,'DelayTime',0.25); else, imwrite(im,map,gif,'gif','WriteMode','append','DelayTime',0.25); end
 end
 end
 close(f);

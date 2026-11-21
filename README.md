@@ -86,7 +86,7 @@ run_step('s6_flowrate_timing')
 ### 5. 主要方法
 
 - **速度与坏矢量。** u = dispX·M/Δt。剔除分三级：位移超过 8 px；偏离该点时间序列中值 6 倍稳健标准差；Westerweel–Scarano（2005）通用异常检测（3 × 3，阈值 2，ε = 0.1 px）。剔除后不替补。统计量只在有效率 ≥ 50 % 的点上计算。
-- **POD 与相位。** 快照 POD（SVD），缺失点用 `regionfill` 补。相位 φ = atan2(a<sub>2</sub>/√(2λ<sub>2</sub>), a<sub>1</sub>/√(2λ<sub>1</sub>))，振幅 A > 0.5 的帧参加 12 区间相位平均。
+- **POD 与相位。** 快照 POD（SVD），缺失点用 `regionfill` 补。相位 φ = atan2(a<sub>2</sub>/√(2λ<sub>2</sub>), a<sub>1</sub>/√(2λ<sub>1</sub>))，振幅 A > 0.5 的帧参加 12 区间相位平均。φ 的正负方向在数学上是任意的：追踪到的涡核随 φ 增大向上游移动，所以物理时间对应 φ 减小，F12 和动画都按 φ 从大到小排列。
 - **三重分解。** u = U + ũ + u″，即时均、相干（相位平均减时均）和随机三部分。
 - **涡识别。** 旋转强度 λ<sub>ci</sub>，在 λ<sub>ci</sub> > 0.15 max 的区域内积分环量 Γ，并逐相位追踪涡核。
 - **采样率与混叠。** 数据不是时间解析的：相邻样本的相位步长圆均值为 −172.1°。涡核随 φ 增大向上游移动，所以物理时间沿 −φ 方向，f/f<sub>s</sub> = n + 0.478。取 n = 0、f<sub>s</sub> = 1 Hz 时，阻塞修正后的 Strouhal 数为 0.206；按 Strouhal 数 0.18–0.24 反推，f<sub>s</sub> 应在 0.87–1.16 Hz 之间。2 Hz 给出 Strouhal 数 0.41，与数据不相容。
@@ -184,7 +184,7 @@ Constants to change for another dataset:
 ### 5. Methods in brief
 
 - **Velocity and outliers.** u = dispX·M/Δt. Three stages: displacement above 8 px; more than 6 robust standard deviations from the local time-series median; the universal outlier detection of Westerweel and Scarano (2005) with a 3 × 3 kernel, threshold 2 and ε = 0.1 px. Removed vectors are not replaced. Statistics are computed only where at least 50 % of the samples are valid.
-- **POD and phase.** Snapshot POD by SVD, with gaps filled by `regionfill`. Phase φ = atan2(a<sub>2</sub>/√(2λ<sub>2</sub>), a<sub>1</sub>/√(2λ<sub>1</sub>)); fields with amplitude A > 0.5 enter a 12-bin phase average.
+- **POD and phase.** Snapshot POD by SVD, with gaps filled by `regionfill`. Phase φ = atan2(a<sub>2</sub>/√(2λ<sub>2</sub>), a<sub>1</sub>/√(2λ<sub>1</sub>)); fields with amplitude A > 0.5 enter a 12-bin phase average. The sign of φ is arbitrary: tracked vortex cores move upstream as φ increases, so physical time runs with decreasing φ, and F12 and the animation are ordered from large to small φ.
 - **Triple decomposition.** u = U + ũ + u″: mean, coherent (phase average minus mean) and stochastic parts.
 - **Vortex identification.** Swirling strength λ<sub>ci</sub>; circulation Γ integrated over λ<sub>ci</sub> > 0.15 max, with the cores tracked bin by bin.
 - **Frame rate and aliasing.** The data are not time-resolved: the circular-mean phase step between samples is −172.1°. Vortex cores move upstream as φ increases, so physical time runs along −φ and f/f<sub>s</sub> = n + 0.478. With n = 0 and f<sub>s</sub> = 1 Hz, the blockage-corrected Strouhal number is 0.206; a Strouhal number between 0.18 and 0.24 requires f<sub>s</sub> = 0.87–1.16 Hz. At 2 Hz the Strouhal number would be 0.41, which the data rule out.
@@ -282,7 +282,7 @@ Konstanten, die für einen anderen Datensatz anzupassen sind:
 ### 5. Methoden in Kürze
 
 - **Geschwindigkeit und Ausreißer.** u = dispX·M/Δt. Drei Stufen: Verschiebung über 8 px; mehr als 6 robuste Standardabweichungen vom Median der lokalen Zeitreihe; die universelle Ausreißererkennung nach Westerweel und Scarano (2005) mit 3 × 3-Umgebung, Schwelle 2 und ε = 0,1 px. Entfernte Vektoren werden nicht ersetzt. Statistiken werden nur dort berechnet, wo mindestens 50 % der Aufnahmen gültig sind.
-- **POD und Phase.** Snapshot-POD per Singulärwertzerlegung, Lücken mit `regionfill` gefüllt. Phase φ = atan2(a<sub>2</sub>/√(2λ<sub>2</sub>), a<sub>1</sub>/√(2λ<sub>1</sub>)); Felder mit Amplitude A > 0,5 gehen in eine Phasenmittelung mit 12 Klassen ein.
+- **POD und Phase.** Snapshot-POD per Singulärwertzerlegung, Lücken mit `regionfill` gefüllt. Phase φ = atan2(a<sub>2</sub>/√(2λ<sub>2</sub>), a<sub>1</sub>/√(2λ<sub>1</sub>)); Felder mit Amplitude A > 0,5 gehen in eine Phasenmittelung mit 12 Klassen ein. Das Vorzeichen von φ ist willkürlich: Die verfolgten Wirbelkerne wandern mit wachsendem φ stromaufwärts, die physikalische Zeit läuft also mit abnehmendem φ; F12 und die Animation sind daher von großem zu kleinem φ geordnet.
 - **Dreifachzerlegung.** u = U + ũ + u″: Mittelwert, kohärenter Anteil (Phasenmittel minus Mittelwert) und stochastischer Anteil.
 - **Wirbelidentifikation.** Wirbelstärkekriterium λ<sub>ci</sub> (swirling strength); die Zirkulation Γ wird über λ<sub>ci</sub> > 0,15 max integriert, die Wirbelkerne werden von Klasse zu Klasse verfolgt.
 - **Bildrate und Aliasing.** Die Daten sind nicht zeitaufgelöst: Der zirkulare Mittelwert des Phasensprungs zwischen zwei Aufnahmen beträgt −172,1°. Die Wirbelkerne wandern mit wachsendem φ stromaufwärts, die physikalische Zeit läuft also in Richtung −φ, und es gilt f/f<sub>s</sub> = n + 0,478. Mit n = 0 und f<sub>s</sub> = 1 Hz ergibt sich eine versperrungskorrigierte Strouhal-Zahl von 0,206; eine Strouhal-Zahl zwischen 0,18 und 0,24 erfordert f<sub>s</sub> = 0,87–1,16 Hz. Bei 2 Hz läge die Strouhal-Zahl bei 0,41, was die Daten ausschließen.
