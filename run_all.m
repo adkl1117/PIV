@@ -1,15 +1,19 @@
 % RUN_ALL  Complete cylinder-wake PIV pipeline, in dependency order.
 % 按依赖顺序运行完整的圆柱尾迹 PIV 处理流程。
+% Vollständige PIV-Auswertung des Zylindernachlaufs in der Reihenfolge der Abhängigkeiten.
 %
-% Before running / 运行前:
+% Before running / 运行前 / Vor dem Start:
 %   1. Put the course data in data/FM-Lab-WS2627-Group1/ (see data/README.md),
 %      or call setenv('PIV_DATA', '<folder>') first.
 %      把课程数据放到 data/FM-Lab-WS2627-Group1/，或先用 setenv 指定 PIV_DATA。
+%      Kursdaten nach data/FM-Lab-WS2627-Group1/ legen oder vorher PIV_DATA mit setenv setzen.
 %   2. Optional: setenv('PIV_RESULTS', '<folder>') to write results elsewhere.
 %      可选：用 PIV_RESULTS 指定结果目录。
+%      Optional: Ergebnisordner über PIV_RESULTS festlegen.
 %
 % Runtime on a desktop PC: about 3 min (tested on R2025b).
 % 普通台式机约 3 分钟（R2025b 上测试）。
+% Laufzeit auf einem Desktop-PC: etwa 3 min (getestet mit R2025b).
 
 repo = fileparts(mfilename('fullpath'));
 addpath(repo, fullfile(repo, 'src'));

@@ -4,6 +4,8 @@ function run_step(name)
 %   The scripts start with CLEAR, so each one runs inside a separate helper
 %   function; the caller's variables (for example the loop in run_all.m) stay intact.
 %   每个脚本开头都有 clear，放在单独的函数里运行，调用者的变量不会被清掉。
+%   Die Skripte beginnen mit CLEAR; jedes läuft daher in einer eigenen Hilfsfunktion,
+%   damit die Variablen des Aufrufers erhalten bleiben.
 repo = fileparts(mfilename('fullpath'));
 addpath(repo, fullfile(repo, 'src'));
 t0 = tic;

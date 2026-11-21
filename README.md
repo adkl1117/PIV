@@ -1,16 +1,18 @@
-# Cylinder-wake PIV analysis · 圆柱尾迹 PIV 数据分析
+# Cylinder-wake PIV analysis · 圆柱尾迹 PIV 数据分析 · PIV-Auswertung des Zylindernachlaufs
 
 MATLAB code for the full post-processing of a planar PIV measurement of the wake behind a circular cylinder in an open water channel: calibration, outlier filtering, mean and turbulence statistics, POD, phase averaging, vortex tracking, discharge estimation, a check of the unknown frame rate, and a comparison with Tremblay's (2001) DNS/LES at Re = 3900.
 
 一套 MATLAB 代码，用于明渠中圆柱尾迹的平面 PIV 数据后处理。内容包括：标定、坏矢量剔除、时均与湍流统计、POD、相位平均、涡追踪、流量估算、未知采样率的检验，以及与 Tremblay（2001）Re = 3900 DNS/LES 结果的对比。
+
+MATLAB-Code für die vollständige Auswertung einer ebenen PIV-Messung im Nachlauf eines Kreiszylinders in einem offenen Wasserkanal: Kalibrierung, Ausreißerfilterung, mittlere Strömung und Turbulenzstatistik, POD, Phasenmittelung, Wirbelverfolgung, Bestimmung des Durchflusses, Prüfung der unbekannten Bildrate und Vergleich mit der DNS/LES von Tremblay (2001) bei Re = 3900.
 
 <p align="center">
   <img src="docs/img/F12b_phase_animation.gif" width="49%" alt="phase-averaged vorticity">
   <img src="docs/img/N01_triple_decomposition.png" width="49%" alt="triple decomposition">
 </p>
 
-**Contents · 目录**
-[中文说明](#中文说明) · [English](#english) · [Repository layout · 仓库结构](#repository-layout--仓库结构)
+**Contents · 目录 · Inhalt**
+[中文说明](#中文说明) · [English](#english) · [Deutsch](#deutsch) · [Repository layout · 仓库结构 · Aufbau](#repository-layout--仓库结构--aufbau)
 
 ---
 
@@ -210,19 +212,117 @@ Constants to change for another dataset:
 
 ---
 
-## Repository layout · 仓库结构
+## Deutsch
+
+### 1. Voraussetzungen
+
+| Punkt | Hinweise |
+|---|---|
+| MATLAB | R2020a oder neuer (`tiledlayout`, `exportgraphics`); getestet mit R2025b |
+| Toolboxen | Image Processing Toolbox (`imgaussfilt`, `regionfill`); Statistics and Machine Learning Toolbox (`prctile`, `quantile`, `corr`) |
+| Daten | Der Kursdatensatz `FM-Lab-WS2627-Group1`, **nicht in diesem Repository enthalten**; die erwartete Ordnerstruktur steht in [`data/README.md`](data/README.md) |
+| Arbeitsspeicher | Etwa 4 GB frei. Der Datensatz mit Zylinder enthält 4069 Verschiebungsfelder mit 64 × 86 Vektoren, der Datensatz des leeren Kanals 690 |
+
+### 2. Schnellstart
+
+```matlab
+% 1) Nach dem Klonen die Daten nach data/FM-Lab-WS2627-Group1/ legen
+%    (oder den Speicherort über eine Umgebungsvariable angeben)
+setenv('PIV_DATA', 'D:/path/to/FM-Lab-WS2627-Group1');   % optional
+setenv('PIV_RESULTS', 'D:/path/to/results');             % optional, Standard: results/
+
+% 2) Im Wurzelverzeichnis des Repositorys die gesamte Auswertung starten (etwa 3 min auf einem Desktop-PC)
+run_all
+
+% 3) Einen einzelnen Schritt erneut ausführen (die vorherigen Schritte müssen ihre .mat-Dateien bereits geschrieben haben)
+run_step('s6_flowrate_timing')
+```
+
+Die Ergebnisse landen in `results/`: Zwischengrößen als `.mat`-Dateien, Abbildungen in `results/figures/`.
+
+### 3. Ablauf der Auswertung
+
+| Schritt | Skript | Was es tut | Liest | Schreibt |
+|---|---|---|---|---|
+| 1 | `s1_calibration.m` | Im Mittelwert von 11 Partikelbildern erscheint der Zylinder als partikelfreie Scheibe; eine Kreisanpassung liefert eine erste Schätzung von 0,0915 mm/px. Die Scheibe (351 px) ist kleiner als der beleuchtete Rand im Kalibrierbild (376,9 px) und ihr Rand ist unscharf, daher dient sie nur zum Abgleich; verwendet wird s1b | `Samples/*.TIF` | `calibration.mat` |
+| 1b | `s1b_ring.m` | Kreisanpassung an den beleuchteten Zylinderrand im Kalibrierbild; liefert Mittelpunkt und Durchmesser für s2 (376,9 px → 0,0853 mm/px) | `Calibration/*.TIF` | Konsole |
+| 2 | `s2_process.m` | Verschiebung in Geschwindigkeit, u = dispX·M/Δt; dreistufige Ausreißerentfernung; Mittelwerte, Reynolds-Spannungen, Schiefe, Wirbelstärke, Produktion der turbulenten kinetischen Energie | `Data/PIV_Data_Cyl.mat` | `cyl_stats.mat`, `cyl_velocity.mat` |
+| 4 | `s4_analysis.m` | Anströmung im leeren Kanal, Mittellinie und Profile, Rezirkulationslänge L<sub>r</sub>, Snapshot-POD, Phasenmittelung in 12 Klassen anhand der POD-Phase, Spektren | `PIV_Data_Bulk.mat`, Ergebnisse von Schritt 2 | `analysis.mat` |
+| 5 | `s5_figures.m` | Grundlegende Abbildungen F01–F16 und die Phasenanimation | obige Ergebnisse | `figures/F01…F16` |
+| 6 | `s6_flowrate_timing.m` | Durchfluss Q aus dem Profil des leeren Kanals mit Monte-Carlo-Unsicherheit; Prüfung der angenommenen Bildrate und der Strouhal-Zahl | `analysis.mat` | `flowrate_timing.mat`, F17, F18 |
+| 7 | `s7_literature.m` | Vergleich mit Tremblay (2001); Dreifachzerlegung, Wirbelverfolgung und Zirkulation, Intermittenz der Wirbelablösung, bedingte Mittelwerte, Asymmetrie oben/unten | obige Ergebnisse, `lit_tremblay.m` | `literature.mat` |
+| 9 | `s9_review_check.m` | Kontrollrechnungen: Laufrichtung der Wirbel (legt das Vorzeichen des Aliasings fest), Konvergenz von L<sub>r</sub>, Dissipationsrate, Empfindlichkeit des Durchflusses, Turbulenzgrad der Anströmung | obige Ergebnisse | `review_check.mat` |
+| 8 | `s8_lit_figures.m` | Vergleichsabbildungen L01–L03 und Abbildungen der neuen Analysen N01–N06 (benötigt s9 und läuft daher danach) | obige Ergebnisse | `figures/L0*, N0*` |
+| 10 | `s10_fs_scenario.m` | Gegenüberstellung der Ergebnisse für f<sub>s</sub> = 1 Hz und 2 Hz | obige Ergebnisse | `figures/N07` |
+
+`src/explore/` enthält explorative Skripte (erster Blick auf die Anströmung, Anpassung von Profilgesetzen, TIF-Metadaten), die nicht zur Auswertekette gehören.
+
+### 4. Parameter und Annahmen
+
+| Größe | Wert | Quelle |
+|---|---|---|
+| Zylinderdurchmesser D | 32,15 mm | Messprotokoll |
+| Pulsabstand Δt | 3000 µs | Datensatz |
+| Abbildungsmaßstab M | 0,0853 mm/px (D = 376,9 px) | Kreisanpassung an den beleuchteten Rand (s1b) |
+| Vektorgitter | 86 × 64, Abstand 16 px = 0,042 D | Datensatz (Auswertefenster 32 px, 50 % Überlappung) |
+| Wassertiefe y<sub>0</sub> | 0,118 m | Messprotokoll |
+| Kanalbreite b | **0,060 m** | vom Experimentator korrigiert (die 0,60 m im Messprotokoll sind falsch) |
+| Zylindermitte über der Sohle | etwa 60 mm | Angabe des Experimentators |
+| Wassertemperatur, ρ, ν | 23,8 °C, 997,3 kg/m³, 9,17 × 10⁻⁷ m²/s | Messprotokoll |
+| Tracerpartikel | d<sub>p</sub> = 50 µm, ρ<sub>p</sub> = 1016 kg/m³ | Messprotokoll |
+| Bildrate f<sub>s</sub> | **1 Hz, nicht bestätigt** | Schätzung des Experimentators. Alles, was in Sekunden gemessen wird (Ablösefrequenz, Strouhal-Zahl, Vorschubgeschwindigkeit der Wirbel), hängt davon ab |
+
+Konstanten, die für einen anderen Datensatz anzupassen sind:
+
+- `s2_process.m`: `D_mm`, `Dpx`, `xc_px`, `yc_row` (Zylinderdurchmesser und -mittelpunkt in Pixeln), `nu`, `rho`.
+- `s6_flowrate_timing.m`, `s9_review_check.m`: `b`, `h` (Breite und Tiefe) sowie die Sohlpositionen in `cases`.
+- `s10_fs_scenario.m`: `frac` (f/f<sub>s</sub> aus dem Phasensprung zwischen zwei Aufnahmen) und `ub`.
+- `lit_tremblay.m`: Referenzkurven (von Hand digitalisiert, etwa ±0,02).
+
+### 5. Methoden in Kürze
+
+- **Geschwindigkeit und Ausreißer.** u = dispX·M/Δt. Drei Stufen: Verschiebung über 8 px; mehr als 6 robuste Standardabweichungen vom Median der lokalen Zeitreihe; die universelle Ausreißererkennung nach Westerweel und Scarano (2005) mit 3 × 3-Umgebung, Schwelle 2 und ε = 0,1 px. Entfernte Vektoren werden nicht ersetzt. Statistiken werden nur dort berechnet, wo mindestens 50 % der Aufnahmen gültig sind.
+- **POD und Phase.** Snapshot-POD per Singulärwertzerlegung, Lücken mit `regionfill` gefüllt. Phase φ = atan2(a<sub>2</sub>/√(2λ<sub>2</sub>), a<sub>1</sub>/√(2λ<sub>1</sub>)); Felder mit Amplitude A > 0,5 gehen in eine Phasenmittelung mit 12 Klassen ein.
+- **Dreifachzerlegung.** u = U + ũ + u″: Mittelwert, kohärenter Anteil (Phasenmittel minus Mittelwert) und stochastischer Anteil.
+- **Wirbelidentifikation.** Wirbelstärkekriterium λ<sub>ci</sub> (swirling strength); die Zirkulation Γ wird über λ<sub>ci</sub> > 0,15 max integriert, die Wirbelkerne werden von Klasse zu Klasse verfolgt.
+- **Bildrate und Aliasing.** Die Daten sind nicht zeitaufgelöst: Der zirkulare Mittelwert des Phasensprungs zwischen zwei Aufnahmen beträgt −172,1°. Die Wirbelkerne wandern mit wachsendem φ stromaufwärts, die physikalische Zeit läuft also in Richtung −φ, und es gilt f/f<sub>s</sub> = n + 0,478. Mit n = 0 und f<sub>s</sub> = 1 Hz ergibt sich eine versperrungskorrigierte Strouhal-Zahl von 0,206; eine Strouhal-Zahl zwischen 0,18 und 0,24 erfordert f<sub>s</sub> = 0,87–1,16 Hz. Bei 2 Hz läge die Strouhal-Zahl bei 0,41, was die Daten ausschließen.
+- **Durchfluss Q.** Trapezintegration des gemessenen Profils im Messfeld; ein 1/m-Potenzgesetz (m = 3–10) in der Lücke über der Sohle; Extrapolation bis zur freien Oberfläche; Seitenwandfaktor κ<sub>w</sub> = m<sub>w</sub>/(m<sub>w</sub>+1), weil sich in einem 60 mm breiten Kanal die beiden Wandgrenzschichten in der Mittelebene treffen. Unsicherheit aus 2 × 10⁵ Monte-Carlo-Ziehungen.
+- **Dissipation und Stokes-Zahl.** Die Formel aus dem Messprotokoll ε ≈ u<sub>b</sub>³/D wird neben datenbasierten Schätzungen (2/3-Gesetz, 0,5u″³/L<sub>11</sub>) angegeben. Stokes-Zahl = τ<sub>p</sub>/τ<sub>η</sub>.
+
+### 6. Wichtigste Ergebnisse für diesen Datensatz
+
+| Größe | Wert |
+|---|---|
+| Durchfluss Q | 0,384 l/s (95 %: 0,364–0,402) |
+| Mittlere Geschwindigkeit u<sub>b</sub>, Re<sub>D</sub> | 0,0542 m/s, etwa 1900 (versperrungskorrigiert etwa 2600) |
+| Rezirkulationslänge L<sub>r</sub> (ab der Zylinderrückseite) | 1,39 D; Referenzexperimente 1,4 ± 0,1 |
+| Energieanteil der POD-Moden 1 + 2 | 39,7 % |
+| Strouhal-Zahl (versperrungskorrigiert) | 0,206, unter der Annahme f<sub>s</sub> = 1 Hz und n = 0 |
+| Kohärenter Anteil der Normalspannungen auf der Achse | etwa 54 % |
+
+### 7. Bekannte Einschränkungen
+
+- **Unbekannte Bildrate.** f<sub>s</sub> = 1 Hz besteht eine Konsistenzprüfung, ist aber nicht bewiesen. Wüsste man, wie lange die Aufnahme der 4069 Felder gedauert hat, wäre die Frage geklärt.
+- **Peak-Locking.** Die Wahrscheinlichkeitsdichten der Verschiebung haben Spitzen bei ganzzahligen Pixelwerten, daher sind rms-Werte verzerrt; Mittelwerte sind kaum betroffen.
+- **Phasenabhängige Ausfälle.** In den Scherschichten schwankt der Anteil gültiger Vektoren je nach Phase zwischen 0,52 und 0,66; Phasenmittel und rms-Werte können daher zu niedrig sein.
+- **Endwände.** Der Zylinder spannt nur 1,87 D zwischen den Seitenwänden, anders als die periodische Spannweite der Referenzsimulation. Die PIV-Ebene liegt in der Mitte der Spannweite, der Vergleich gilt daher nur für diesen Schnitt.
+- **Referenzkurven.** Die Kurven in `lit_tremblay.m` sind von Hand digitalisiert, etwa ±0,02.
+
+---
+
+## Repository layout · 仓库结构 · Aufbau
 
 ```
-run_all.m            whole pipeline in order / 按顺序运行完整流程
-run_step.m           run one script in its own workspace / 单独运行某一步
-piv_path.m           data and results folders (PIV_DATA, PIV_RESULTS) / 数据与结果目录
-src/                 analysis scripts s1–s10, lit_tremblay.m / 分析脚本
-src/explore/         exploratory scripts, not needed for the results / 探索性脚本
-data/README.md       expected data layout / 数据目录说明
-docs/img/            example figures for this README / 说明用示例图
+run_all.m            whole pipeline in order / 按顺序运行完整流程 / gesamte Auswertung der Reihe nach
+run_step.m           run one script in its own workspace / 单独运行某一步 / einzelnen Schritt ausführen
+piv_path.m           data and results folders (PIV_DATA, PIV_RESULTS) / 数据与结果目录 / Daten- und Ergebnisordner
+src/                 analysis scripts s1–s10, lit_tremblay.m / 分析脚本 / Auswerteskripte
+src/explore/         exploratory scripts, not needed for the results / 探索性脚本 / explorative Skripte
+data/README.md       expected data layout / 数据目录说明 / erwartete Datenstruktur
+docs/img/            example figures for this README / 说明用示例图 / Beispielabbildungen
 ```
 
-## References · 参考文献
+## References · 参考文献 · Literatur
 
 - F. Tremblay (2001). *Direct and large-eddy simulation of flow around a circular cylinder at subcritical Reynolds numbers.* Doctoral thesis, Technische Universität München.
 - J. Westerweel, F. Scarano (2005). Universal outlier detection for PIV data. *Experiments in Fluids* 39, 1096–1100.

@@ -12,6 +12,9 @@ function p = piv_path(which)
 %
 %   数据目录与结果目录。默认放在仓库内的 data/ 与 results/，
 %   也可以用环境变量 PIV_DATA、PIV_RESULTS 指定其他位置。
+%
+%   Daten- und Ergebnisordner. Standardmäßig data/ und results/ im Repository;
+%   andere Orte lassen sich über die Umgebungsvariablen PIV_DATA und PIV_RESULTS angeben.
 
 repo = fileparts(mfilename('fullpath'));
 switch lower(which)
