@@ -1,0 +1,10 @@
+# data and generated results are not tracked / 数据和结果不纳入版本控制
+data/*
+!data/README.md
+results/
+*.mat
+*.asv
+*.m~
+slprj/
+.DS_Store
+Thumbs.db
